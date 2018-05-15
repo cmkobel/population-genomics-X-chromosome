@@ -1,5 +1,4 @@
 library(tidyverse)
-library(plyr)
 library(zoo)
 setwd("~/Biologi/Pop Gen/12 project/data")
 # Population Genetics on X-chromosome 
@@ -17,8 +16,12 @@ setwd("~/Biologi/Pop Gen/12 project/data")
 # AM
 # Please note that this requires the res_scan_<region> dataframes in order to work. So run ## B first.
 
-# FST: Jeg er ikke sikker på at dette er den rigtige måde at gøre det på. Da jeg ikke skalerer med antallet af individer
 
+for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
+    print(
+        load(paste("res_scan_", i, ".rdata", sep=""), verbose=T)
+    )
+}
 
 cmean = function(x) {
     if (sum(sapply(x, function(z) sum(length(which(is.na(z))))))/length(x) < 0.5) {
@@ -51,7 +54,7 @@ fst_rolling_window = function(pos, freq_A_1, freq_A_2, size) {
         ))
 }
 
-
+# FST: Jeg er ikke sikker på at dette er den rigtige måde at gøre det på. Da jeg ikke skalerer med antallet af individer
 
 af_we_fst_10 = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_scan_WE$freq_A, 10)
 
