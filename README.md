@@ -1,6 +1,5 @@
 This repo is the hand in of a semester end project in the course: Population Genomics spring 2018, at BiRC, Aarhus University.
 
------------------------------------------------------------------------------------------------
 
 ***
 
