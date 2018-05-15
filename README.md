@@ -1,8 +1,11 @@
+This repo is the hand in of a semester end project in the course: Population Genomics spring 2018, at BiRC, Aarhus University.
+
 -----------------------------------------------------------------------------------------------
+
+***
 
 ## Population Genetics on X-chromosome 
 
------------------------------------------------------------------------------------------------
 
 The data consists of a vcf file of 150 male full X chromosomes, a bed file with callable regions, a gif gene annotation file, a metafile with information about the samples and a set of files for use with REHH.
 
