@@ -1,21 +1,12 @@
-library(tidyverse)
+source("projX functions.r")
+
+require(gridExtra)
 ## B. Perform an iHS (integrated haplotype score) scan of the whole X chromosome for at least three populations. Identify the 10 most significant regions and associated with genes as in A.
 # see week 7 for insp.
 
 # Install the package
 #install.packages('rehh')
-# library(rehh)
-
-# cd2h = function(genotypes, snps) {
-#     return(
-#         data2haplohh(hap_file=genotypes ,map_file=snps,
-#                      recode.allele=TRUE,
-#                      min_perc_geno.snp=100,
-#                      min_perc_geno.hap=80,
-#                      haplotype.in.columns=TRUE, chr.name=1)
-#     )
-# }
-
+library(rehh)
 
 
 # Reading the data for each population:
@@ -28,14 +19,13 @@ library(tidyverse)
 # CAS = CentralAsiaSiberia
 # O = Oceania
 
-# haplohh_WE = cd2h("genotypes_WE.hap", "snps_filtered.inp") # WestEurasia    44 haplotypes and 411892 SNPs
-# haplohh_AF = cd2h("genotypes_AF.hap", "snps_filtered.inp") # Africa         21 haplotypes and 411892 SNPs
-# haplohh_EA = cd2h("genotypes_EA.hap", "snps_filtered.inp") # EastAsia       24 haplotypes and 411892 SNPs
-# haplohh_SA = cd2h("genotypes_SA.hap", "snps_filtered.inp") # SouthAsia      30 haplotypes and 411892 SNPs
-# haplohh_AM = cd2h("genotypes_AM.hap", "snps_filtered.inp") # America         6 haplotypes and 411892 SNPs
-# haplohh_CAS = cd2h("genotypes_CAS.hap", "snps_filtered.inp") # CntrlAsiaSiber8 haplotypes and 411892 SNPs
-# haplohh_O = cd2h("genotypes_O.hap", "snps_filtered.inp") # Oceania          12 haplotypes and 411892 SNPs
-
+haplohh_WE = cd2h("genotypes_WE.hap", "snps_filtered.inp") # WestEurasia    44 haplotypes and 411892 SNPs
+haplohh_AF = cd2h("genotypes_AF.hap", "snps_filtered.inp") # Africa         21 haplotypes and 411892 SNPs
+haplohh_EA = cd2h("genotypes_EA.hap", "snps_filtered.inp") # EastAsia       24 haplotypes and 411892 SNPs
+haplohh_SA = cd2h("genotypes_SA.hap", "snps_filtered.inp") # SouthAsia      30 haplotypes and 411892 SNPs
+haplohh_AM = cd2h("genotypes_AM.hap", "snps_filtered.inp") # America         6 haplotypes and 411892 SNPs
+haplohh_CAS = cd2h("genotypes_CAS.hap", "snps_filtered.inp") # CntrlAsiaSiber8 haplotypes and 411892 SNPs
+haplohh_O = cd2h("genotypes_O.hap", "snps_filtered.inp") # Oceania          12 haplotypes and 411892 SNPs
 
 
 # Compute ihh for all the snps in the halohh object considered.
@@ -56,8 +46,7 @@ library(tidyverse)
 # save(res_scan_O, file="res_scan_O.rdata")
 
 
-## hejse
-## load again
+# ^ The above code products are loaded here (1000x faster than recomputing)
 for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
     print(
         load(paste("res_scan_", i, ".rdata", sep=""), verbose=T)
@@ -66,14 +55,40 @@ for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
 
 
 # Compute ihs (integrated haplotype score from integrated haplotype homozygosity)
+wg_ihs_WE = ihh2ihs(res_scan_WE, freqbin = 0.16)
+wg_ihs_AF = ihh2ihs(res_scan_AF, freqbin = 0.16)
+wg_ihs_EA = ihh2ihs(res_scan_EA, freqbin = 0.16)
+wg_ihs_SA = ihh2ihs(res_scan_SA, freqbin = 0.16)
 wg_ihs_AM = ihh2ihs(res_scan_AM, freqbin = 0.16)
 wg_ihs_CAS = ihh2ihs(res_scan_CAS, freqbin = 0.16)
+wg_ihs_O = ihh2ihs(res_scan_O, freqbin = 0.16)
+
 # Jeg ved ikke helt hvad freqbin gør, men nu har jeg øget den indtil den ikke brokker sig længere.
 
 
 # Plotting the results.
-ihsplot(wg_ihs_AM, plot.pval = T)
-ihsplot(wg_ihs_CAS, plot.pval = T)
+ihsplot(wg_ihs_WE, plot.pval = T, main="WE", cex = 0.005, pch = 19)
+ihsplot(wg_ihs_AF, plot.pval = T, main="AF")
+ihsplot(wg_ihs_EA, plot.pval = T, main="EA")
+ihsplot(wg_ihs_SA, plot.pval = T, main="SA")
+ihsplot(wg_ihs_AM, plot.pval = T, main="AM")
+ihsplot(wg_ihs_CAS, plot.pval = T, main="CAS")
+ihsplot(wg_ihs_O, plot.pval = T, main="O")
+
+# .. in a better way
+p1 = ggplot() +
+    geom_point(aes(x=wg_ihs_AF$iHS$POSITION, y=wg_ihs_AF$iHS$iHS), size=0.05) +
+    xlab("chromosome X position") + ylab("iHS") +
+    ggtitle("AF")
+
+p2 = ggplot() +
+    geom_point(aes(x=wg_ihs_AF$iHS$POSITION, y=wg_ihs_AF$iHS$`-log10(p-value)`), size=0.05) +
+    xlab("chromosome X position") + ylab("p-value")
+    
+
+grid.arrange(p1,p2, layout_matrix = rbind(c(1),c(2)))
+
+
 
 
 
