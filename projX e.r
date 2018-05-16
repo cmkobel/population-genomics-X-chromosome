@@ -13,7 +13,8 @@ for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
 roll_window_mean = rollapply(res_scan_AF$freq_A, 1000, mean, fill=NA)
 
 ggplot(res_scan_AF) + 
-    geom_line(aes(x=POSITION, y=roll_window_mean, color="mean"))
+    geom_line(aes(x=POSITION, y=roll_window_mean, color="mean")) +
+    xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
 
 
 # Jeg vil gerne beregne LD.
@@ -46,7 +47,8 @@ binary_snps = ancestral2zero(snp_metadata$ancestral, genotypes_AF)
 #   snp_metadata is the metadata file
 #   binary_snps is the output of ancestral2zero with a specific genotype file from the populations.
 n_snps = dim(binary_snps)[1]
-n_folds = 10000
+n_folds = 4118
+fold_size = n_snps / n_folds
 e_results = tibble(pos=NA, LD=NA)[-1,]
 if(n_snps > n_folds) {
 print(paste("fold size: ", n_snps/n_folds))
@@ -75,7 +77,8 @@ print(paste("fold size: ", n_snps/n_folds))
 #e_results = as.data.frame(e_results)
 
 ggplot(e_results) + 
-    geom_line(aes(x=pos, y=LD), size = 0.1) + 
-    ggtitle("LD: AF")
+    geom_line(aes(x=pos, y=LD), size = 0.2) + 
+    xlab("chromosome X position") + ylab(paste("Sequential", round(fold_size), "SNP window mean LD")) +
+    ggtitle("Linkage disequilibrium: AF")
 
-plot(e_results, cex=0.2)
+#plot(e_results, cex=0.2)
