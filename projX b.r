@@ -1,6 +1,7 @@
-source("projX functions.r")
+setwd("~/Biologi/Pop Gen/12 project/data")
+source("../projX functions.r")
 
-require(gridExtra)
+require(gridExtra) # for gridarrange
 ## B. Perform an iHS (integrated haplotype score) scan of the whole X chromosome for at least three populations. Identify the 10 most significant regions and associated with genes as in A.
 # see week 7 for insp.
 
@@ -52,6 +53,16 @@ for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
     )
 }
 
+# Q2 Allele freq in pops.
+pdf(file="freq_A_density_WE.pdf"); hist(res_scan_WE$freq_A); dev.off()
+pdf(file="freq_A_density_AF.pdf"); hist(res_scan_AF$freq_A); dev.off()
+pdf(file="freq_A_density_EA.pdf"); hist(res_scan_EA$freq_A); dev.off()
+pdf(file="freq_A_density_SA.pdf"); hist(res_scan_SA$freq_A); dev.off()
+pdf(file="freq_A_density_AM.pdf"); hist(res_scan_AM$freq_A); dev.off()
+pdf(file="freq_A_density_CAS.pdf"); hist(res_scan_CAS$freq_A); dev.off()
+pdf(file="freq_A_density_O.pdf"); hist(res_scan_O$freq_A); dev.off()
+
+#Q3: How is the standardized iHH calculated? For what reason do they standardize iHS measure?
 
 # Compute ihs (integrated haplotype score from integrated haplotype homozygosity)
 wg_ihs_WE = ihh2ihs(res_scan_WE, freqbin = 0.16)
@@ -62,30 +73,47 @@ wg_ihs_AM = ihh2ihs(res_scan_AM, freqbin = 0.16)
 wg_ihs_CAS = ihh2ihs(res_scan_CAS, freqbin = 0.16)
 wg_ihs_O = ihh2ihs(res_scan_O, freqbin = 0.16)
 
-# Jeg ved ikke helt hvad freqbin gør, men nu har jeg øget den indtil den ikke brokker sig længere.
+# Jeg ved ikke helt hvad freqbin gør, men nu har jeg øget den indtil den ikke brokker sig længere??
 
 
 # Plotting the results.
-ihsplot(wg_ihs_WE, plot.pval = T, main="WE", cex = 0.005, pch = 19)
-ihsplot(wg_ihs_AF, plot.pval = T, main="AF")
-ihsplot(wg_ihs_EA, plot.pval = T, main="EA")
-ihsplot(wg_ihs_SA, plot.pval = T, main="SA")
-ihsplot(wg_ihs_AM, plot.pval = T, main="AM")
-ihsplot(wg_ihs_CAS, plot.pval = T, main="CAS")
-ihsplot(wg_ihs_O, plot.pval = T, main="O")
+# ihsplot(wg_ihs_WE, plot.pval = T, main="WE", cex = 0.005, pch = 19)
+# ihsplot(wg_ihs_AF, plot.pval = T, main="AF")
+# ihsplot(wg_ihs_EA, plot.pval = T, main="EA")
+# ihsplot(wg_ihs_SA, plot.pval = T, main="SA")
+# ihsplot(wg_ihs_AM, plot.pval = T, main="AM")
+# ihsplot(wg_ihs_CAS, plot.pval = T, main="CAS")
+# ihsplot(wg_ihs_O, plot.pval = T, main="O")
 
-# .. in a better way
-p1 = ggplot() +
-    geom_point(aes(x=wg_ihs_AF$iHS$POSITION, y=wg_ihs_AF$iHS$iHS), size=0.05) +
-    xlab("chromosome X position") + ylab("iHS") +
-    ggtitle("AF")
+#Q4. Do you find outliers with significant iHS?
+#Find the foverlap code
 
-p2 = ggplot() +
-    geom_point(aes(x=wg_ihs_AF$iHS$POSITION, y=wg_ihs_AF$iHS$`-log10(p-value)`), size=0.05) +
-    xlab("chromosome X position") + ylab("p-value")
-    
 
-grid.arrange(p1,p2, layout_matrix = rbind(c(1),c(2)))
+# set up plots in a fancy manner, better than ihsplot does 
+plot_ihs = function(plot_df) {
+    print(
+        grid.arrange(
+            ggplot(plot_df) + 
+                geom_point(aes(x=POSITION, y=iHS),
+                           size=0.05) +
+                xlab("chromosome X position") +
+                ylab("iHS") + ggtitle("AF"),
+            
+            ggplot(plot_df) + 
+                geom_point(aes(x=POSITION, y=`-log10(p-value)`),
+                           size=0.05) +
+                xlab("chromosome X position") +
+                ylab("p-value"), layout_matrix = rbind(c(1),c(2)))
+    )
+}
+
+pdf("ihs_WE.pdf"); plot_ihs(wg_ihs_WE$iHS); dev.off()
+pdf("ihs_AF.pdf"); plot_ihs(wg_ihs_AF$iHS); dev.off()
+pdf("ihs_EA.pdf"); plot_ihs(wg_ihs_EA$iHS); dev.off()
+pdf("ihs_SA.pdf"); plot_ihs(wg_ihs_SA$iHS); dev.off()
+pdf("ihs_AM.pdf"); plot_ihs(wg_ihs_AM$iHS); dev.off()
+pdf("ihs_CAS.pdf"); plot_ihs(wg_ihs_CAS$iHS); dev.off()
+pdf("ihs_O.pdf"); plot_ihs(wg_ihs_O$iHS); dev.off()
 
 
 

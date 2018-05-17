@@ -12,8 +12,7 @@ setwd("~/Biologi/Pop Gen/12 project/data")
 # between Africa and Europe, 
 # between Europe and East Asia, and 
 # between East Asia and Africa. Identify the 10 strongest Fst outlier regions in each case. Identify their genomic position and the genes covered by thse Fat peaks. Discuss potential adaptive explanations.
-# AM
-# Please note that this requires the res_scan_<region> dataframes in order to work. So run ## B first.
+
 
 
 for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
@@ -49,9 +48,6 @@ fst_rolling_window = function(pos, freq_A_1, freq_A_2, size, mfunction) {
 fst_af_we = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_scan_WE$freq_A, 1000, cmean)
 fst_we_ea = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 1000, cmean)
 fst_ea_af = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 1000, cmean)
-# af_we_fst_med = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_scan_WE$freq_A, 1001, cmedian)
-# we_ea_fst_med = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 1001, cmedian)
-# ea_af_fst_med = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 1001, cmedian)
 
 ggplot(fst_af_we, aes(x=pos)) +
     geom_point(aes(y=sliding_window), size=0.05, color="1000") +
