@@ -31,11 +31,12 @@ snp_metadata <- read.delim("~/Biologi/Pop Gen/12 project/data/snps_filtered.inp"
 
 
 
-ancestral2zero = function(ancestral, snps) {
-    cbind(ancestral, snps) %>%
-    apply(1, function(x) {
-        zeroed = gsub(x[1], 0, x[-1]) # turn ancestral snps into zeroes
+ancestral2zero = function(df_ancestral, df_snps) {
+    cbind(df_ancestral, df_snps) %>%
+    apply(1, function(snps) {
+        zeroed = gsub(snps[1], 0, snps[-1]) # turn ancestral snps into zeroes
         as.integer(gsub("[A,C,T,G]", 1, zeroed)) # turn derived snps into ones
+        # I thin there is a smarter way to do the two above lines. There is no reason why you wouldn't be able to do a case
     }) %>% 
     t() %>%
     return()
@@ -43,16 +44,18 @@ ancestral2zero = function(ancestral, snps) {
 
 binary_snps = ancestral2zero(snp_metadata$ancestral, genotypes_AF)
 
+# Parametriser
 # Dependencies
 #   snp_metadata is the metadata file
 #   binary_snps is the output of ancestral2zero with a specific genotype file from the populations.
+
 n_snps = dim(binary_snps)[1]
-n_folds = 4118
-fold_size = n_snps / n_folds
+n_snps_per_window = 1000
+n_folds = round(n_snps/n_snps_per_window)
 e_results = tibble(pos=NA, LD=NA)[-1,]
 if(n_snps > n_folds) {
 print(paste("fold size: ", n_snps/n_folds))
-    for (fold in 1:n_folds) {
+    for (fold in 1:n_folds) { # finda way to skip when the SD = 0
         
         start = floor((fold-1)*(n_snps/n_folds)+1)
         end = floor((fold)*(n_snps/n_folds))
@@ -72,13 +75,10 @@ print(paste("fold size: ", n_snps/n_folds))
         # Optionally, add the chromosomal position?
     }
 }
-# I manually add the highest
-#e_results = rbind(e_results, tibble(pos = start + abs(start-end)/2, LD = res_mean))
-#e_results = as.data.frame(e_results)
 
 ggplot(e_results) + 
-    geom_line(aes(x=pos, y=LD), size = 0.2) + 
-    xlab("chromosome X position") + ylab(paste("Sequential", round(fold_size), "SNP window mean LD")) +
+    geom_line(aes(x=pos, y=LD), size = 0.3) +
+    xlab("chromosome X position") + ylab(paste("mean LD for", n_folds, "sequential windows with", n_snps_per_window, "SNPs in each")) +
     ggtitle("Linkage disequilibrium: AF")
 
-#plot(e_results, cex=0.2)
+
