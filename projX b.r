@@ -8,7 +8,6 @@ require(gridExtra)
 #install.packages('rehh')
 library(rehh)
 
-
 # Reading the data for each population:
 
 # WE = WestEurasia

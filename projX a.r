@@ -46,33 +46,33 @@ fst_rolling_window = function(pos, freq_A_1, freq_A_2, size, mfunction) {
 
 # FST: Jeg er ikke sikker på at dette er den rigtige måde at gøre det på. Da jeg ikke skalerer med antallet af individer
 
-af_we_fst = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_scan_WE$freq_A, 1000, cmean)
-we_ea_fst = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 1000, cmean)
-ea_af_fst = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 1000, cmean)
+fst_af_we = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_scan_WE$freq_A, 1000, cmean)
+fst_we_ea = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 1000, cmean)
+fst_ea_af = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 1000, cmean)
 # af_we_fst_med = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_scan_WE$freq_A, 1001, cmedian)
 # we_ea_fst_med = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 1001, cmedian)
 # ea_af_fst_med = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 1001, cmedian)
 
-ggplot(af_we_fst, aes(x=pos)) +
+ggplot(fst_af_we, aes(x=pos)) +
     geom_point(aes(y=sliding_window), size=0.05, color="1000") +
     xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
     ggtitle("AF/WE: F_ST")
 
-ggplot(we_ea_fst, aes(x=pos)) +
+ggplot(fst_we_ea, aes(x=pos)) +
     geom_point(aes(y=sliding_window), size=0.05, color="1000") +
     xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
     ggtitle("WE/EA: F_ST")
 
-ggplot(ea_af_fst, aes(x=pos)) +
+ggplot(fst_ea_af, aes(x=pos)) +
     geom_point(aes(y=sliding_window), size=0.05, color="1000") +
     xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
     ggtitle("EA/AF: F_ST")
 
 # merged
-ggplot(af_we_fst, aes(x=pos)) +
-    geom_point(aes(y=af_we_fst$sliding_window, color="AF/WE"), size = 0.005) +
-    geom_point(aes(y=we_ea_fst$sliding_window, color="WE/EA"), size = 0.005) +
-    geom_point(aes(y=ea_af_fst$sliding_window, color="EA/AF"), size = 0.005) +
+ggplot(fst_af_we, aes(x=pos)) +
+    geom_point(aes(y=fst_af_we$sliding_window, color="AF/WE"), size = 0.005) +
+    geom_point(aes(y=fst_we_ea$sliding_window, color="WE/EA"), size = 0.005) +
+    geom_point(aes(y=fst_ea_af$sliding_window, color="EA/AF"), size = 0.005) +
     xlab("chromosome X position") + ylab("filtered F_ST (1000 SNP sliding window)") +
     ggtitle("F_ST between regions")
 
