@@ -54,13 +54,13 @@ for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
 }
 
 # Q2 Allele freq in pops.
-pdf(file="freq_A_density_WE.pdf"); hist(res_scan_WE$freq_A); dev.off()
-pdf(file="freq_A_density_AF.pdf"); hist(res_scan_AF$freq_A); dev.off()
-pdf(file="freq_A_density_EA.pdf"); hist(res_scan_EA$freq_A); dev.off()
-pdf(file="freq_A_density_SA.pdf"); hist(res_scan_SA$freq_A); dev.off()
-pdf(file="freq_A_density_AM.pdf"); hist(res_scan_AM$freq_A); dev.off()
-pdf(file="freq_A_density_CAS.pdf"); hist(res_scan_CAS$freq_A); dev.off()
-pdf(file="freq_A_density_O.pdf"); hist(res_scan_O$freq_A); dev.off()
+pdf(file="../plots/b_ehh/freq_A_density_WE.pdf"); hist(res_scan_WE$freq_A); dev.off()
+pdf(file="../plots/b_ehh/freq_A_density_AF.pdf"); hist(res_scan_AF$freq_A); dev.off()
+pdf(file="../plots/b_ehh/freq_A_density_EA.pdf"); hist(res_scan_EA$freq_A); dev.off()
+pdf(file="../plots/b_ehh/freq_A_density_SA.pdf"); hist(res_scan_SA$freq_A); dev.off()
+pdf(file="../plots/b_ehh/freq_A_density_AM.pdf"); hist(res_scan_AM$freq_A); dev.off()
+pdf(file="../plots/b_ehh/freq_A_density_CAS.pdf"); hist(res_scan_CAS$freq_A); dev.off()
+pdf(file="../plots/b_ehh/freq_A_density_O.pdf"); hist(res_scan_O$freq_A); dev.off()
 
 #Q3: How is the standardized iHH calculated? For what reason do they standardize iHS measure?
 
@@ -94,32 +94,35 @@ plot_ihs = function(plot_df) {
     print(
         grid.arrange(
             ggplot(plot_df) + 
-                geom_point(aes(x=POSITION, y=iHS),
-                           size=0.05) +
+                geom_point(aes(x=POSITION, y=`-log10(p-value)`), size=0.03) +
                 xlab("chromosome X position") +
-                ylab("iHS") + ggtitle("AF"),
-            
+                ylab("-log10( p-value )") + ggtitle("AF"),
             ggplot(plot_df) + 
-                geom_point(aes(x=POSITION, y=`-log10(p-value)`),
-                           size=0.05) +
-                xlab("chromosome X position") +
-                ylab("p-value"), layout_matrix = rbind(c(1),c(2)))
+                geom_point(aes(x=POSITION, y=iHS), size=0.03) +
+                xlab("") +
+                ylab("iHS"),
+            layout_matrix = rbind(c(1),c(2))
+        )
     )
 }
 
-pdf("ihs_WE.pdf"); plot_ihs(wg_ihs_WE$iHS); dev.off()
-pdf("ihs_AF.pdf"); plot_ihs(wg_ihs_AF$iHS); dev.off()
-pdf("ihs_EA.pdf"); plot_ihs(wg_ihs_EA$iHS); dev.off()
-pdf("ihs_SA.pdf"); plot_ihs(wg_ihs_SA$iHS); dev.off()
-pdf("ihs_AM.pdf"); plot_ihs(wg_ihs_AM$iHS); dev.off()
-pdf("ihs_CAS.pdf"); plot_ihs(wg_ihs_CAS$iHS); dev.off()
-pdf("ihs_O.pdf"); plot_ihs(wg_ihs_O$iHS); dev.off()
+#pdf("relation ihs pval.pdf"); plot(wg_ihs_WE$iHS$iHS, wg_ihs_WE$iHS$`-log10(p-value)`); dev.off()
+
+pdf("../plots/b_ehh/ihs_WE.pdf"); plot_ihs(wg_ihs_WE$iHS); dev.off()
+pdf("../plots/b_ehh/ihs_AF.pdf"); plot_ihs(wg_ihs_AF$iHS); dev.off()
+pdf("../plots/b_ehh/ihs_EA.pdf"); plot_ihs(wg_ihs_EA$iHS); dev.off()
+pdf("../plots/b_ehh/ihs_SA.pdf"); plot_ihs(wg_ihs_SA$iHS); dev.off()
+pdf("../plots/b_ehh/ihs_AM.pdf"); plot_ihs(wg_ihs_AM$iHS); dev.off()
+pdf("../plots/b_ehh/ihs_CAS.pdf"); plot_ihs(wg_ihs_CAS$iHS); dev.off()
+pdf("../plots/b_ehh/ihs_O.pdf"); plot_ihs(wg_ihs_O$iHS); dev.off()
 
 
 
 
 
-# XP-EHH (sammenligning)
+
+
+# XP-EHH (sammenligning) (pairwise population tests)
 wg_xpehh_AM_CAS = ies2xpehh(res_scan_AM, res_scan_CAS, popname1 = "AM", popname2 = "CAS", method = "bilateral")
 # Skal det her egentlig stå på den anden side af opgave C?
 
