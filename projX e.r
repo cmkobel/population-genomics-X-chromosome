@@ -15,10 +15,6 @@ roll_window_mean = rollapply(res_scan_AF$freq_A, 1000, mean, fill=NA)
 ggplot(res_scan_AF) + 
     geom_line(aes(x=POSITION, y=roll_window_mean, color="mean")) +
     xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
-
-
-
-    
     
 
 
@@ -39,7 +35,7 @@ ancestral2zero = function(df_ancestral, df_snps) {
 }
 
 
-linkage_disequilibrium = function(binary_snp_data, title, size) {
+linkage_disequilibrium = function(binary_snp_data, title, size, plot) {
     # Parametriser
     # Dependencies
     #   snp_metadata is the metadata file
@@ -67,15 +63,16 @@ linkage_disequilibrium = function(binary_snp_data, title, size) {
             e_results = rbind(e_results, tibble(pos = snp_metadata$pos[start + abs(start-end)/2], LD = res_mean))
         }
     }
-    
-    ggplot(e_results) + 
-        #geom_line(aes(x=pos, y=LD), size = 0.3) +
-        geom_point(aes(x=pos, y=LD), size = 0.3) +
-        xlab("chromosome X position") + ylab(paste("mean LD (", n_folds, " sequential windows with ", n_snps_per_window, " SNPs in each)", sep="")) +
-        ggtitle(paste("Linkage disequilibrium:", title))
-    ggplot2::ggsave(paste("plots/e_LD/LD_", title, "_", n_snps_per_window,"_point.pdf", sep=""), width=10, height=6)
-    
-    #return(e_results)
+
+    if (plot) { # plot or not
+        ggplot(e_results) + 
+            #geom_line(aes(x=pos, y=LD), size = 0.3) +
+            geom_point(aes(x=pos, y=LD), size = 0.3) +
+            xlab("chromosome X position") + ylab(paste("mean LD (", n_folds, " sequential windows with ", n_snps_per_window, " SNPs in each)", sep="")) +
+            ggtitle(paste("Linkage disequilibrium:", title))
+        ggplot2::ggsave(paste("plots/e_LD/LD_", title, "_", n_snps_per_window,"_point.pdf", sep=""), width=10, height=6)
+    }
+    else return(e_results)
 }
 
 
@@ -100,17 +97,32 @@ binary_snps_CAS = ancestral2zero(snp_metadata$ancestral, genotypes_CAS)
 binary_snps_O = ancestral2zero(snp_metadata$ancestral, genotypes_O)
 
 # ignore the following warnings, as they simply mean that the SD == 0 thus the corr. can't be calculated.
-linkage_disequilibrium(binary_snps_WE, "WE", 100)
-linkage_disequilibrium(binary_snps_AF, "AF", 100)
-linkage_disequilibrium(binary_snps_EA, "EA", 100)
-linkage_disequilibrium(binary_snps_SA, "SA", 100)
-linkage_disequilibrium(binary_snps_AM, "AM", 100)
-linkage_disequilibrium(binary_snps_CAS, "CAS", 100)
-linkage_disequilibrium(binary_snps_O, "O", 100)
+linkage_disequilibrium(binary_snps_WE, "WE", 100, 1)
+linkage_disequilibrium(binary_snps_AF, "AF", 100, 1)
+linkage_disequilibrium(binary_snps_EA, "EA", 100, 1)
+linkage_disequilibrium(binary_snps_SA, "SA", 100, 1)
+linkage_disequilibrium(binary_snps_AM, "AM", 100, 1)
+linkage_disequilibrium(binary_snps_CAS, "CAS", 100, 1)
+linkage_disequilibrium(binary_snps_O, "O", 100, 1)
+
+res_WE = linkage_disequilibrium(binary_snps_WE, "", 100, 0)
+res_AF = linkage_disequilibrium(binary_snps_AF, "", 100, 0)
+res_EA = linkage_disequilibrium(binary_snps_EA, "", 100, 0)
+res_SA = linkage_disequilibrium(binary_snps_SA, "", 100, 0)
+res_AM = linkage_disequilibrium(binary_snps_AM, "", 100, 0)
+res_CAS = linkage_disequilibrium(binary_snps_CAS, "", 100, 0)
+res_O = linkage_disequilibrium(binary_snps_O, "", 100, 0)
+
+
+
+plot(density(res_WE$LD, na.rm = T))
+plot(density(res_AF$LD, na.rm = T))
+plot(density(res_EA$LD, na.rm = T))
+plot(density(res_SA$LD, na.rm = T))
+plot(density(res_AM$LD, na.rm = T))
+plot(density(res_CAS$LD, na.rm = T))
+plot(density(res_O$LD, na.rm = T))
 
 
 
 # Add LD density
-    
-
-
