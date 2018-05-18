@@ -1,23 +1,22 @@
 source("projX functions.r")
-setwd("~/Biologi/Pop Gen/12 project/data")
 # Population Genetics on X-chromosome 
-#The data consists of a vcf file of 150 male full X chromosomes, a bed file with callable regions, a gif gene annotation file, a metafile with information about the samples and a set of files for use with REHH.
-# OK, let's go through the file formats.
-
+# The data consists of a vcf file of 150 male full X chromosomes, a bed file with callable regions, a gif gene annotation file, a metafile with information about the samples and a set of files for use with REHH.
 # Investigate the following
 
+##  A 
+#-------
 
-## A. Perform an Fst scan between sets of populations in a sliding window of 100 SNP positions,
-#including at least the contrast 
+#   I: 
+# ------
+# Perform an Fst scan between sets of populations in a sliding window of 100 SNP positions, including at least the contrast 
 # between Africa and Europe, 
 # between Europe and East Asia, and 
-# between East Asia and Africa. Identify the 10 strongest Fst outlier regions in each case. Identify their genomic position and the genes covered by thse Fat peaks. Discuss potential adaptive explanations.
-
+# between East Asia and Africa. 
 
 
 for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
     print(
-        load(paste("res_scan_", i, ".rdata", sep=""), verbose=T)
+        load(paste("data/res_scan_", i, ".rdata", sep=""), verbose=T)
     )
 }
 
@@ -34,7 +33,7 @@ fst_rolling_window = function(pos, freq_A_1, freq_A_2, size, mfunction) {
         mutate(H_S = (2*p_1*q_1 + 2*p_2*q_2) / 2) %>%
         mutate(H_T = 2 * ((p_1 + p_2)/2) * ((q_1 + q_2)/2)) %>% 
         mutate(F_ST = 1 - H_S / (H_T))# %>%
-    #na.omit() # remove fixed loci # men der er jo ingen grund til at fjerne dem, når cmean alligevel godt kan håndtere NAs
+    #na.omit() # nej, NA's skal jo fjernes så sent som muligt. Ellers ændres vinduestørrelsen (fejlagtigt) omvendt prop. med 
     
     # bør valideres, evt. med width 3, så man manuelt kan krydstjekke?
     return(cbind(
@@ -49,20 +48,30 @@ fst_af_we = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_sca
 fst_we_ea = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 1000, cmean)
 fst_ea_af = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 1000, cmean)
 
-ggplot(fst_af_we, aes(x=pos)) +
-    geom_point(aes(y=sliding_window), size=0.05, color="1000") +
-    xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
-    ggtitle("AF/WE: F_ST")
+fst_af_we_100 = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_scan_WE$freq_A, 100, cmean)
+fst_we_ea_100 = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 100, cmean)
+fst_ea_af_100 = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 100, cmean)
 
-ggplot(fst_we_ea, aes(x=pos)) +
-    geom_point(aes(y=sliding_window), size=0.05, color="1000") +
-    xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
-    ggtitle("WE/EA: F_ST")
 
-ggplot(fst_ea_af, aes(x=pos)) +
-    geom_point(aes(y=sliding_window), size=0.05, color="1000") +
+# add hline
+ggplot(fst_af_we, aes(x = pos)) +
+    geom_point(aes(y = sliding_window), size = 0.05, alpha = 0.5) +
     xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
-    ggtitle("EA/AF: F_ST")
+    #geom_hline(aes(yintercept=1, linetype=cutoff), data=cutoff, show.legend=F) +
+    ggtitle("Fst: AF/WE")
+    ggplot2::ggsave(paste("plots/a_fst/fst_AF_WE.png"))
+
+ggplot(fst_we_ea, aes(x = pos)) +
+    geom_point(aes(y = sliding_window), size = 0.05, alpha = 0.5) +
+    xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
+    ggtitle("Fst: WE/EA")
+    ggplot2::ggsave(paste("plots/a_fst/fst_WE_EA.png"))
+
+ggplot(fst_ea_af, aes(x = pos)) +
+    geom_point(aes(y = sliding_window), size=0.05, alpha = 0.5) +
+    xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
+    ggtitle("Fst: EA/AF")
+    ggplot2::ggsave(paste("plots/a_fst/fst_EA_AF.png"))
 
 # merged
 ggplot(fst_af_we, aes(x=pos)) +
@@ -72,6 +81,36 @@ ggplot(fst_af_we, aes(x=pos)) +
     xlab("chromosome X position") + ylab("filtered F_ST (1000 SNP sliding window)") +
     ggtitle("F_ST between regions")
 
+
+#   II:
+# --------
+# Identify the 10 strongest Fst outlier regions in each case. (This will be done from the 100 snp windows)
+
+sorted = sort(fst_af_we$sliding_window, index.return = T, decreasing = T)
+
+# AF_WE, 7000 seems nice
+n = 5000
+
+plot(c(0, fst_af_we$pos[sorted$ix[1:n]]), c(0, sorted$x[1:n]))
+
+# OK nu tager jeg de her index og sorterer dem
+positions = sort(fst_af_we$pos[sorted$ix[1:n]], index.return = T)
+plot(positions$x, positions$ix)
+
+out = cbind(c(0, fst_af_we$pos[sorted$ix[1:n]]), c(0, sorted$x[1:n])) # and into excel
+write.table(out[,1], file="thybajer1.tsv", sep=" ", row.names = F)
+write.table(out[,2], file="thybajer2.tsv", sep=" ", row.names = F)
+
+    
+
+#   III:
+# ---------
+# Identify their genomic position and the genes covered by thse Fat peaks.
+
+
+#   IV:
+# -----
+# Discuss potential adaptive explanations.
 
 
 
