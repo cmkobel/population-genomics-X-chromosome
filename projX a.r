@@ -101,7 +101,20 @@ out = cbind(c(0, fst_af_we$pos[sorted$ix[1:n]]), c(0, sorted$x[1:n])) # and into
 write.table(out[,1], file="thybajer1.tsv", sep=" ", row.names = F)
 write.table(out[,2], file="thybajer2.tsv", sep=" ", row.names = F)
 
+library(quantmod)
+findPeaks(sin(1:23))
     
+
+
+findPeaks(sin(1:10))
+
+p <- findPeaks(sin(seq(1,10,.1)))
+sin(seq(1,10,.1))[p]
+
+plot(sin(seq(1,10,.1))[p])
+plot(sin(seq(1,10,.1)),type='l')
+points(p,sin(seq(1,10,.1))[p])
+
 
 #   III:
 # ---------
