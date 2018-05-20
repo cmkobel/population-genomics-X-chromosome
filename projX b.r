@@ -1,12 +1,12 @@
-setwd("~/Biologi/Pop Gen/12 project/data")
-source("../projX functions.r")
+source("projX functions.r")
 
 require(gridExtra) # for gridarrange
-## B. Perform an iHS (integrated haplotype score) scan of the whole X chromosome for at least three populations. Identify the 10 most significant regions and associated with genes as in A.
-# see week 7 for insp.
+#   B: Extended haplotype scoring
+#------------------------------------
+# Perform an iHS (integrated haplotype score) scan of the whole X chromosome for at least three populations. Identify the 10 most significant regions and associated with genes as in A.
+# See week 7 for insp.
 
 # Install the package
-#install.packages('rehh')
 library(rehh)
 
 # Reading the data for each population:
@@ -19,13 +19,36 @@ library(rehh)
 # CAS = CentralAsiaSiberia
 # O = Oceania
 
-haplohh_WE = cd2h("genotypes_WE.hap", "snps_filtered.inp") # WestEurasia    44 haplotypes and 411892 SNPs
-haplohh_AF = cd2h("genotypes_AF.hap", "snps_filtered.inp") # Africa         21 haplotypes and 411892 SNPs
-haplohh_EA = cd2h("genotypes_EA.hap", "snps_filtered.inp") # EastAsia       24 haplotypes and 411892 SNPs
-haplohh_SA = cd2h("genotypes_SA.hap", "snps_filtered.inp") # SouthAsia      30 haplotypes and 411892 SNPs
-haplohh_AM = cd2h("genotypes_AM.hap", "snps_filtered.inp") # America         6 haplotypes and 411892 SNPs
-haplohh_CAS = cd2h("genotypes_CAS.hap", "snps_filtered.inp") # CntrlAsiaSiber8 haplotypes and 411892 SNPs
-haplohh_O = cd2h("genotypes_O.hap", "snps_filtered.inp") # Oceania          12 haplotypes and 411892 SNPs
+# Vitas gene annot. overlay
+## significant sites
+#dSigW <- fread(paste0(output, "dSigWithin_ihs.txt")) #? What is dSigWithin_ihs.txt ?
+
+
+## data.table way 
+require(data.table)
+gtf_df <- as.data.table(rtracklayer::import("data/gencode.v17.annotation.gtf"))
+gtf_df <- as.data.table(gtf)   # used gtf from before. nicer format
+gtf_df <- gtf_df[gtf_df$seqnames == "chrX",]   # to select X chr
+setkey(gtf_df, seqnames, start, end)   # need to index
+
+setkey(dSigW, seqnames, start, end)
+dRes <- foverlaps(dSigW, gtf_df, type = "any", nomatch = 0)
+dRes[type == "gene", ]
+
+
+
+
+haplohh_WE = cd2h("data/genotypes_WE.hap", "data/snps_filtered.inp") # WestEurasia    44 haplotypes and 411892 SNPs
+haplohh_AF = cd2h("data/genotypes_AF.hap", "data/snps_filtered.inp") # Africa         21 haplotypes and 411892 SNPs
+haplohh_EA = cd2h("data/genotypes_EA.hap", "data/snps_filtered.inp") # EastAsia       24 haplotypes and 411892 SNPs
+haplohh_SA = cd2h("data/genotypes_SA.hap", "data/snps_filtered.inp") # SouthAsia      30 haplotypes and 411892 SNPs
+haplohh_AM = cd2h("data/genotypes_AM.hap", "data/snps_filtered.inp") # America         6 haplotypes and 411892 SNPs
+haplohh_CAS = cd2h("data/genotypes_CAS.hap", "data/snps_filtered.inp") # CntrlAsiaSiber8 haplotypes and 411892 SNPs
+haplohh_O = cd2h("data/genotypes_O.hap", "data/snps_filtered.inp") # Oceania          12 haplotypes and 411892 SNPs
+
+# Look at random positions
+# andet argument er snp nummeret.
+site_specific_ehh = calc_ehhs(haplohh_WE, 2)
 
 
 # Compute ihh for all the snps in the halohh object considered.
@@ -49,7 +72,7 @@ haplohh_O = cd2h("genotypes_O.hap", "snps_filtered.inp") # Oceania          12 h
 # ^ The above code products are loaded here (1000x faster than recomputing)
 for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
     print(
-        load(paste("res_scan_", i, ".rdata", sep=""), verbose=T)
+        load(paste("data/res_scan_", i, ".rdata", sep=""), verbose=T)
     )
 }
 
@@ -90,17 +113,17 @@ wg_ihs_O = ihh2ihs(res_scan_O, freqbin = 0.16)
 
 
 # set up plots in a fancy manner, better than ihsplot does 
-plot_ihs = function(plot_df) {
+plot_ihs = function(plot_df, title) {
     print(
         grid.arrange(
             ggplot(plot_df) + 
-                geom_point(aes(x=POSITION, y=`-log10(p-value)`), size=0.03) +
-                xlab("chromosome X position") +
-                ylab("-log10( p-value )") + ggtitle("AF"),
-            ggplot(plot_df) + 
                 geom_point(aes(x=POSITION, y=iHS), size=0.03) +
                 xlab("") +
-                ylab("iHS"),
+                ylab("iHS") + ggtitle(title),
+            ggplot(plot_df) + 
+                geom_point(aes(x=POSITION, y=`-log10(p-value)`), size=0.03) +
+                xlab("chromosome X position") +
+                ylab("-log10( p-value )"),
             layout_matrix = rbind(c(1),c(2))
         )
     )
@@ -108,13 +131,13 @@ plot_ihs = function(plot_df) {
 
 #pdf("relation ihs pval.pdf"); plot(wg_ihs_WE$iHS$iHS, wg_ihs_WE$iHS$`-log10(p-value)`); dev.off()
 
-pdf("../plots/b_ehh/ihs_WE.pdf"); plot_ihs(wg_ihs_WE$iHS); dev.off()
-pdf("../plots/b_ehh/ihs_AF.pdf"); plot_ihs(wg_ihs_AF$iHS); dev.off()
-pdf("../plots/b_ehh/ihs_EA.pdf"); plot_ihs(wg_ihs_EA$iHS); dev.off()
-pdf("../plots/b_ehh/ihs_SA.pdf"); plot_ihs(wg_ihs_SA$iHS); dev.off()
-pdf("../plots/b_ehh/ihs_AM.pdf"); plot_ihs(wg_ihs_AM$iHS); dev.off()
-pdf("../plots/b_ehh/ihs_CAS.pdf"); plot_ihs(wg_ihs_CAS$iHS); dev.off()
-pdf("../plots/b_ehh/ihs_O.pdf"); plot_ihs(wg_ihs_O$iHS); dev.off()
+pdf("../plots/b_ehh/ihs_WE.pdf"); plot_ihs(wg_ihs_WE$iHS, "WE"); dev.off()
+pdf("../plots/b_ehh/ihs_AF.pdf"); plot_ihs(wg_ihs_AF$iHS, "AF"); dev.off()
+pdf("../plots/b_ehh/ihs_EA.pdf"); plot_ihs(wg_ihs_EA$iHS, "EA"); dev.off()
+pdf("../plots/b_ehh/ihs_SA.pdf"); plot_ihs(wg_ihs_SA$iHS, "SA"); dev.off()
+pdf("../plots/b_ehh/ihs_AM.pdf"); plot_ihs(wg_ihs_AM$iHS, "AM"); dev.off()
+pdf("../plots/b_ehh/ihs_CAS.pdf"); plot_ihs(wg_ihs_CAS$iHS, "CAS"); dev.off()
+pdf("../plots/b_ehh/ihs_O.pdf"); plot_ihs(wg_ihs_O$iHS,"O"); dev.off()
 
 
 
@@ -122,10 +145,41 @@ pdf("../plots/b_ehh/ihs_O.pdf"); plot_ihs(wg_ihs_O$iHS); dev.off()
 
 
 
-# XP-EHH (sammenligning) (pairwise population tests)
-wg_xpehh_AM_CAS = ies2xpehh(res_scan_AM, res_scan_CAS, popname1 = "AM", popname2 = "CAS", method = "bilateral")
+#   XP-EHH 
+# ----------
+# (pairwise population tests) 
+
+wg_xpehh_AF_WE = ies2xpehh(res_scan_AM, res_scan_CAS, popname1 = "AF", popname2 = "WE", method = "bilateral")
+wg_xpehh_WE_EA = ies2xpehh(res_scan_AM, res_scan_CAS, popname1 = "WE", popname2 = "EA", method = "bilateral")
+wg_xpehh_EA_AF = ies2xpehh(res_scan_AM, res_scan_CAS, popname1 = "EA", popname2 = "AF", method = "bilateral")
+
+
 # Skal det her egentlig stå på den anden side af opgave C?
 
-xpehhplot(wg_xpehh_AM_CAS, plot.pval = T)
+plot_xpehh = function(plot_df, title) {
+    print(
+        grid.arrange(
+            ggplot(plot_df) + 
+                geom_point(aes(x=POSITION, y=plot_df[3]), size=0.03) +
+                xlab("") +
+                ylab("XPEHH") + ggtitle(title),
+            ggplot(plot_df) + 
+                geom_point(aes(x=POSITION, y=`-log10(p-value) [bilateral]`), size=0.03) +
+                xlab("chromosome X position") +
+                ylab("-log10( p-value )"),
+            layout_matrix = rbind(c(1),c(2))
+        )
+    )
+}
+
+
+# Africa and Europe, 
+# Europe and East Asia
+# East Asia and Africa 
+pdf("../plots/b_ehh/xpehh_AF_WE.pdf"); plot_xpehh(wg_xpehh_AF_WE, "AF_WE"); dev.off()
+pdf("../plots/b_ehh/xpehh_WE_EA.pdf"); plot_xpehh(wg_xpehh_WE_EA, "WE_EA"); dev.off()
+pdf("../plots/b_ehh/xpehh_EA_AF.pdf"); plot_xpehh(wg_xpehh_EA_AF, "EA_AF"); dev.off()
+
+head(wg_xpehh_AF_WE[3])
 
 # Hvis jeg får noget mere forståelse og kan gå lidt i dybden i noget af outputtet, kunne denne sektion godt være færdig.
