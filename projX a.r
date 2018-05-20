@@ -1,3 +1,5 @@
+# Author: Carl M. Kobel
+
 source("projX functions.r")
 # Population Genetics on X-chromosome 
 # The data consists of a vcf file of 150 male full X chromosomes, a bed file with callable regions, a gif gene annotation file, a metafile with information about the samples and a set of files for use with REHH.
@@ -86,6 +88,24 @@ ggplot(fst_af_we, aes(x=pos)) +
 # --------
 # Identify the 10 strongest Fst outlier regions in each case. (This will be done from the 100 snp windows)
 
+#testet:
+window_size = 100
+adjusted_index_offset =  window_size-(window_size/2+1)
+sorted = sort(fst_af_we_100$sliding_window, index.return = T, decreasing = T)
+sortedn = tibble(x = sorted$x, ix = sorted$ix + adjusted_index_offset, pos = fst_af_we_100$pos[sorted$ix + adjusted_index_offset]) # adjust for window size
+# nu kan det her indsættet i overlap med et range fra 1:n som giver et ønsket antal gener.
+# Det kan godt være at koden kan skrives mere effektivt med argumentet partial (?sort), jeg gider bare ikke teste det.
+
+af_we_all_peak_candidates = tibble(start = sortedn$pos,
+                                   end = sortedn$pos,
+                                   fst_rolwin_hecto = sortedn$x)
+
+
+
+
+
+
+# Denne funktion bruges ikke hvis sorteringsmeoden er frugtbar
 cut_fst = function(df_fst, n, return = FALSE) {
     sorted = sort(df_fst$sliding_window, index.return = T, decreasing = T)
     # AF_WE, 7000 seems nice
@@ -103,7 +123,8 @@ cut_fst = function(df_fst, n, return = FALSE) {
 # Comment on window size: Because we want to finde parts of genes having high Fst, we need to look in windows 
 af_we_thresh = 310; cut_fst(fst_af_we_100, af_we_thresh)
 write.table(cut_fst(fst_af_we_100, af_we_thresh, T), file = "10_peaks_fst_af_we.tsv")
-af_we_peaks = tibble(pos = c(19182660, 37878268, 46095748, 55959471, 66270950, 92414472, 104551933, 140734729, 141641747, 145276227),
+af_we_peaks = tibble(start = c(19182660, 37878268, 46095748, 55959471, 66270950, 92414472, 104551933, 140734729, 141641747, 145276227),
+                     end = start,
                      fst = c(0.2502342793, 0.2194004233, 0.2158843816, 0.2101256287, 0.2144259546, 0.2463066009, 0.2330120671, 0.2172732175, 0.2584422211, 0.214525942))
 plot(af_we_peaks)
 
@@ -111,7 +132,8 @@ plot(af_we_peaks)
 # WE EA <
 we_ea_thresh = 700; cut_fst(fst_we_ea_100, we_ea_thresh) # plot
 write.table(cut_fst(fst_we_ea_100, we_ea_thresh, T), file = "10_peaks_fst_we_ea.tsv")
-we_ea_peaks = tibble(pos = c(25671846, 42579633, 71373407, 73295813, 74119733, 87742329, 108285879, 109355662, 116617318, 128684757),
+we_ea_peaks = tibble(start = c(25671846, 42579633, 71373407, 73295813, 74119733, 87742329, 108285879, 109355662, 116617318, 128684757),
+                     end = start,
                       fst = c(0.2626619986, 0.2428685249, 0.2935684424, 0.3036629517, 0.2230540469, 0.2677614183, 0.2119459508, 0.2461968528, 0.2129359005, 0.2161413781))
 plot(we_ea_peaks)
 
@@ -119,9 +141,10 @@ plot(we_ea_peaks)
 # EA AF
 ea_af_thresh = 870; cut_fst(fst_ea_af_100, ea_af_thresh)
 write.table(cut_fst(fst_ea_af_100, ea_af_thresh, T), file = "10_peaks_fst_ea_af.tsv")
-ea_af_peaks = tibble(pos = c(19183926, 36636363, 55960598, 63969563, 66270950, 90576998, 112894056, 121069027, 124687575, 126784188),
+ea_af_peaks = tibble(start = c(19183926, 36636363, 55960598, 63969563, 66270950, 90576998, 112894056, 121069027, 124687575, 126784188),
+                     end = start,
                      fst = c(0.2697129718, 0.3670665736, 0.2939780025, 0.2757454847, 0.390637325, 0.3747966217, 0.2606229121, 0.2809754149, 0.2643502852, 0.3067912248))
-plot(ea_af_peaks)
+plot(ea_af_peaks[2:3])
 
 
 
@@ -138,19 +161,24 @@ fst_overlap = function(fsts, gene_annotation) {
     # gene_annotation = data.table(start = c(10,30,50,70), end = c(20,40,60,80), x_gen = c("gen1", "gen2", "gen3", "gen4"))
     setkey(fsts, start, end)
     return(
-        foverlaps(gene_annotation, fsts, type="any", nomatch = 0) ## return overlap join
+        foverlaps(gene_annotation, fsts, type="any", nomatch = 0)
     )
 }
 
+
 # import annotation
-
-## gene annotation
-require(GenomicRanges) #?
-## genomic ranges way
-gtf <- rtracklayer::import("data/gencode.v17.annotation.gtf")
-gtf <- as.data.table(gtf[seqnames(gtf) == 'chrX'])   # to select only X chromosome
+# require(GenomicRanges) #? not needed, right?
+gtf <- as.data.table(rtracklayer::import("data/gencode.v17.annotation.gtf"))
+gtf <- gtf[gtf$seqnames == 'chrX']   # to select only X chromosome
 
 
+
+
+
+# gammelt overlap fra manuelle fundne peaks.
+ovl_af_we = fst_overlap(as.data.table(af_we_peaks), gtf)
+unique(ovl_af_we$gene_name)
+View(ovl_af_we)
 
 
 #   IV:
