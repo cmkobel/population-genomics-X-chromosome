@@ -23,21 +23,6 @@ library(rehh)
 # CAS = CentralAsiaSiberia
 # O = Oceania
 
-# Vitas gene annot. overlay
-## significant sites
-#dSigW <- fread(paste0(output, "dSigWithin_ihs.txt")) #? What is dSigWithin_ihs.txt ?
-
-
-## data.table way 
-require(data.table)
-gtf_df <- as.data.table(rtracklayer::import("data/gencode.v17.annotation.gtf"))
-gtf_df <- as.data.table(gtf)   # used gtf from before. nicer format
-gtf_df <- gtf_df[gtf_df$seqnames == "chrX",]   # to select X chr
-setkey(gtf_df, seqnames, start, end)   # need to index
-
-setkey(dSigW, seqnames, start, end)
-dRes <- foverlaps(dSigW, gtf_df, type = "any", nomatch = 0)
-dRes[type == "gene", ]
 
 
 
@@ -99,7 +84,6 @@ wg_ihs_SA = ihh2ihs(res_scan_SA, freqbin = 0.16)
 wg_ihs_AM = ihh2ihs(res_scan_AM, freqbin = 0.16)
 wg_ihs_CAS = ihh2ihs(res_scan_CAS, freqbin = 0.16)
 wg_ihs_O = ihh2ihs(res_scan_O, freqbin = 0.16)
-
 # Jeg ved ikke helt hvad freqbin gør, men nu har jeg øget den indtil den ikke brokker sig længere??
 
 
@@ -145,52 +129,44 @@ pdf("../plots/b_ehh/ihs_O.pdf"); plot_ihs(wg_ihs_O$iHS,"O"); dev.off()
 
 
 
-
-
-
-
-#   XP-EHH 
-# ----------
-# (pairwise population tests) 
-
-wg_xpehh_AF_WE = ies2xpehh(res_scan_AM, res_scan_CAS, popname1 = "AF", popname2 = "WE", method = "bilateral")
-wg_xpehh_WE_EA = ies2xpehh(res_scan_AM, res_scan_CAS, popname1 = "WE", popname2 = "EA", method = "bilateral")
-wg_xpehh_EA_AF = ies2xpehh(res_scan_AM, res_scan_CAS, popname1 = "EA", popname2 = "AF", method = "bilateral")
-
-
-# Skal det her egentlig stå på den anden side af opgave C?
-
-plot_xpehh = function(plot_df, title) {
-    print(
-        grid.arrange(
-            ggplot(plot_df) + 
-                geom_point(aes(x=POSITION, y=plot_df[3]), size=0.03) +
-                xlab("") +
-                ylab("XPEHH") + ggtitle(title),
-            ggplot(plot_df) + 
-                geom_point(aes(x=POSITION, y=`-log10(p-value) [bilateral]`), size=0.03) +
-                xlab("chromosome X position") +
-                ylab("-log10( p-value )"),
-            layout_matrix = rbind(c(1),c(2))
-        )
-    )
-}
-
-
-# Africa and Europe, 
-# Europe and East Asia
-# East Asia and Africa 
-pdf("../plots/b_ehh/xpehh_AF_WE.pdf"); plot_xpehh(wg_xpehh_AF_WE, "AF_WE"); dev.off()
-pdf("../plots/b_ehh/xpehh_WE_EA.pdf"); plot_xpehh(wg_xpehh_WE_EA, "WE_EA"); dev.off()
-pdf("../plots/b_ehh/xpehh_EA_AF.pdf"); plot_xpehh(wg_xpehh_EA_AF, "EA_AF"); dev.off()
-
-head(wg_xpehh_AF_WE[3])
-
-
 #   II
 # ------
 # Identify the 10 most significant regions and associated with genes as in A.
 
+# Denne funktion skal være generel og kan egentlig indsættes i
 
+overlap = function(candidates, gene_annotation) {
+    # Example of formatting of input, start and end is needed for both
+    # fsts = data.table(start = c(12, 55, 19), end = c(12, 55, 19), fst = c(0.1, 0.2, 0.3))
+    # gene_annotation = data.table(start = c(10,30,50,70), end = c(20,40,60,80), x_gen = c("gen1", "gen2", "gen3", "gen4"))
+    setkey(candidates, start, end)
+    return(
+        foverlaps(gene_annotation, candidates, type="any", nomatch = 0)
+    )
+}
+
+gtf <- as.data.table(rtracklayer::import("data/gencode.v17.annotation.gtf"))
+gtf <- gtf[gtf$seqnames == 'chrX']   # to select only X chromosome
+
+# sorter en percentil
+# skal parametriseres
+# sorter med hele lortet denne gang.
+# what = function(sorter_dette, sorter_efter_kolonne_nr, percentil) {
+sorted = wg_ihs_AF$iHS[order(wg_ihs_AF$iHS$`-log10(p-value)`, decreasing = T),]
+best_percentile = quantile(sorted$`-log10(p-value)`, 0.99976, na.rm = T)[[1]] # beregn percentil før filtrering
+best_percentile
+plot(density(
+    na.omit(
+        sorted$`-log10(p-value)`
+    )
+)); abline(v = best_percentile)
+sorted_filtered = sorted[sorted$`-log10(p-value)` >= best_percentile,] # fjern alt under en tærskel
+sorted_filtered_tibble = tibble(start = sorted_filtered$POSITION,
+                                end = start,
+                                ihs = sorted_filtered$iHS,
+                                `-log10(p-value)` = sorted_filtered$`-log10(p-value)`)
+overlap_out = overlap(na.omit(as.data.table(sorted_filtered_tibble)), gtf)
+unique(overlap_out$gene_name)
+# så er der ti !
 
 # Hvis jeg får noget mere forståelse og kan gå lidt i dybden i noget af outputtet, kunne denne sektion godt være færdig.
