@@ -86,39 +86,71 @@ ggplot(fst_af_we, aes(x=pos)) +
 # --------
 # Identify the 10 strongest Fst outlier regions in each case. (This will be done from the 100 snp windows)
 
-sorted = sort(fst_af_we$sliding_window, index.return = T, decreasing = T)
+cut_fst = function(df_fst, n, return = FALSE) {
+    sorted = sort(df_fst$sliding_window, index.return = T, decreasing = T)
+    # AF_WE, 7000 seems nice
+    result = cbind(c(365712, df_fst$pos[sorted$ix[1:n]], 155110877), c(0.0, sorted$x[1:n], 0.0))
+    if (return) return(result)
+    else print(plot(result, cex = 0.3))
+}
 
-# AF_WE, 7000 seems nice
-n = 5000
 
-plot(c(0, fst_af_we$pos[sorted$ix[1:n]]), c(0, sorted$x[1:n]))
-
-# OK nu tager jeg de her index og sorterer dem
-positions = sort(fst_af_we$pos[sorted$ix[1:n]], index.return = T)
-plot(positions$x, positions$ix)
-
-out = cbind(c(0, fst_af_we$pos[sorted$ix[1:n]]), c(0, sorted$x[1:n])) # and into excel
-write.table(out[,1], file="thybajer1.tsv", sep=" ", row.names = F)
-write.table(out[,2], file="thybajer2.tsv", sep=" ", row.names = F)
-
-library(quantmod)
-findPeaks(sin(1:23))
     
 
 
-findPeaks(sin(1:10))
+# AF WE
+#cut_fst(fst_af_we, 5000)
+# Comment on window size: Because we want to finde parts of genes having high Fst, we need to look in windows 
+af_we_thresh = 310; cut_fst(fst_af_we_100, af_we_thresh)
+write.table(cut_fst(fst_af_we_100, af_we_thresh, T), file = "10_peaks_fst_af_we.tsv")
+af_we_peaks = tibble(pos = c(19182660, 37878268, 46095748, 55959471, 66270950, 92414472, 104551933, 140734729, 141641747, 145276227),
+                     fst = c(0.2502342793, 0.2194004233, 0.2158843816, 0.2101256287, 0.2144259546, 0.2463066009, 0.2330120671, 0.2172732175, 0.2584422211, 0.214525942))
+plot(af_we_peaks)
 
-p <- findPeaks(sin(seq(1,10,.1)))
-sin(seq(1,10,.1))[p]
 
-plot(sin(seq(1,10,.1))[p])
-plot(sin(seq(1,10,.1)),type='l')
-points(p,sin(seq(1,10,.1))[p])
+# WE EA <
+we_ea_thresh = 700; cut_fst(fst_we_ea_100, we_ea_thresh) # plot
+write.table(cut_fst(fst_we_ea_100, we_ea_thresh, T), file = "10_peaks_fst_we_ea.tsv")
+we_ea_peaks = tibble(pos = c(25671846, 42579633, 71373407, 73295813, 74119733, 87742329, 108285879, 109355662, 116617318, 128684757),
+                      fst = c(0.2626619986, 0.2428685249, 0.2935684424, 0.3036629517, 0.2230540469, 0.2677614183, 0.2119459508, 0.2461968528, 0.2129359005, 0.2161413781))
+plot(we_ea_peaks)
+
+
+# EA AF
+ea_af_thresh = 870; cut_fst(fst_ea_af_100, ea_af_thresh)
+write.table(cut_fst(fst_ea_af_100, ea_af_thresh, T), file = "10_peaks_fst_ea_af.tsv")
+ea_af_peaks = tibble(pos = c(19183926, 36636363, 55960598, 63969563, 66270950, 90576998, 112894056, 121069027, 124687575, 126784188),
+                     fst = c(0.2697129718, 0.3670665736, 0.2939780025, 0.2757454847, 0.390637325, 0.3747966217, 0.2606229121, 0.2809754149, 0.2643502852, 0.3067912248))
+plot(ea_af_peaks)
+
+
+
+
 
 
 #   III:
 # ---------
 # Identify their genomic position and the genes covered by thse Fat peaks.
+
+fst_overlap = function(fsts, gene_annotation) {
+    # Example of formatting of input, start and end is needed for both
+    # fsts = data.table(start = c(12, 55, 19), end = c(12, 55, 19), fst = c(0.1, 0.2, 0.3))
+    # gene_annotation = data.table(start = c(10,30,50,70), end = c(20,40,60,80), x_gen = c("gen1", "gen2", "gen3", "gen4"))
+    setkey(fsts, start, end)
+    return(
+        foverlaps(gene_annotation, fsts, type="any", nomatch = 0) ## return overlap join
+    )
+}
+
+# import annotation
+
+## gene annotation
+require(GenomicRanges) #?
+## genomic ranges way
+gtf <- rtracklayer::import("data/gencode.v17.annotation.gtf")
+gtf <- as.data.table(gtf[seqnames(gtf) == 'chrX'])   # to select only X chromosome
+
+
 
 
 #   IV:
