@@ -1,10 +1,14 @@
 source("projX functions.r")
 
-require(gridExtra) # for gridarrange
+require(gridExtra) # for gridarrange in plotting
 #   B: Extended haplotype scoring
 #------------------------------------
-# Perform an iHS (integrated haplotype score) scan of the whole X chromosome for at least three populations. Identify the 10 most significant regions and associated with genes as in A.
-# See week 7 for insp.
+# # See week 7 for insp.
+
+
+#   I
+# -----
+# Perform an iHS (integrated haplotype score) scan of the whole X chromosome for at least three populations. 
 
 # Install the package
 library(rehh)
@@ -181,5 +185,12 @@ pdf("../plots/b_ehh/xpehh_WE_EA.pdf"); plot_xpehh(wg_xpehh_WE_EA, "WE_EA"); dev.
 pdf("../plots/b_ehh/xpehh_EA_AF.pdf"); plot_xpehh(wg_xpehh_EA_AF, "EA_AF"); dev.off()
 
 head(wg_xpehh_AF_WE[3])
+
+
+#   II
+# ------
+# Identify the 10 most significant regions and associated with genes as in A.
+
+
 
 # Hvis jeg får noget mere forståelse og kan gå lidt i dybden i noget af outputtet, kunne denne sektion godt være færdig.

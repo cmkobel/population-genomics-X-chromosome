@@ -54,6 +54,13 @@ fst_af_we_100 = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res
 fst_we_ea_100 = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 100, cmean)
 fst_ea_af_100 = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 100, cmean)
 
+quantile(fst_af_we_100$sliding_window, 0.95, na.rm = T)
+
+plot(density(na.omit(fst_af_we_100$sliding_window)))
+abline(v=0.1607412)
+abline(v=0.1172794)
+
+
 
 # add hline
 ggplot(fst_af_we, aes(x = pos)) +
@@ -200,25 +207,30 @@ View(overlap_af_we)
 # PLAN B
 
 # AF WE
-lim = 12000
-new_overlap_af_we = fst_overlap(as.data.table(af_we_all_peak_candidates[1:lim,]), gtf[1:lim,])
+lima = 12000
+new_overlap_af_we = fst_overlap(as.data.table(af_we_all_peak_candidates[1:lima,]), gtf[1:lima,])
 simple = new_overlap_af_we[,c(1, 2, 3, 15, 17, 18, 23)]
+View(simple)
 unique(new_overlap_af_we$gene_name)
+# min(new_overlap_af_we$fst_rolwin_hecto)
+# plot(density(new_overlap_af_we$fst_rolwin_hecto))
 
 
 # WE EA
-lim = 12000
-new_overlap_we_ea = fst_overlap(as.data.table(we_ea_all_peak_candidates[1:lim,]), gtf[1:lim,])
+limb = 9500
+new_overlap_we_ea = fst_overlap(as.data.table(we_ea_all_peak_candidates[1:limb,]), gtf[1:limb,])
 simple = new_overlap_we_ea[,c(1, 2, 3, 15, 17, 18, 23)]
 unique(new_overlap_we_ea$gene_name)
 
 
 # EA AF
-lim = 12000
-new_overlap_ea_af = fst_overlap(as.data.table(ea_af_all_peak_candidates[1:lim,]), gtf[1:lim,])
+limc = 14000
+new_overlap_ea_af = fst_overlap(as.data.table(ea_af_all_peak_candidates[1:limc,]), gtf[1:limc,])
 simple = new_overlap_ea_af[,c(1, 2, 3, 15, 17, 18, 23)]
 unique(new_overlap_ea_af$gene_name)
 
+
+# PLAN C 1 percentile
 
 
 
@@ -226,6 +238,16 @@ unique(new_overlap_ea_af$gene_name)
 # ------
 # Discuss potential adaptive explanations.
 
+# AF WE
+# 
+# GPR143
+# https://www.ncbi.nlm.nih.gov/gene/4935
+# "binds to heterotrimeric G proteins and is targeted to melanosomes in pigment cells."
+
+# WE EA
+
+
+# EA AF
 
 
 # An interesting question is - how long back are you looking when the bin size is different?
