@@ -169,4 +169,5 @@ overlap_out = overlap(na.omit(as.data.table(sorted_filtered_tibble)), gtf)
 unique(overlap_out$gene_name)
 # så er der ti !
 
+
 # Hvis jeg får noget mere forståelse og kan gå lidt i dybden i noget af outputtet, kunne denne sektion godt være færdig.
