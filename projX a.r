@@ -1,5 +1,5 @@
 # Author: Carl M. Kobel
-
+plot = F
 source("projX functions.r")
 # Population Genetics on X-chromosome 
 # The data consists of a vcf file of 150 male full X chromosomes, a bed file with callable regions, a gif gene annotation file, a metafile with information about the samples and a set of files for use with REHH.
@@ -48,9 +48,11 @@ fst_rolling_window = function(pos, freq_A_1, freq_A_2, size, mfunction) {
 
 # FST: Jeg er ikke sikker på at dette er den rigtige måde at gøre det på. Da jeg ikke skalerer med antallet af individer
 # window 1000, only needed for plotting
+if (plot) {
 fst_af_we = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_scan_WE$freq_A, 1000, cmean)
 fst_we_ea = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 1000, cmean)
 fst_ea_af = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 1000, cmean)
+}
 
 
 # window 100, for statistics
@@ -69,7 +71,7 @@ fst_ea_af_100 = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res
 
 
 
-
+if (plot) {
 # add hline
 pdf("plots/a_fst/fst_AF_WE.pdf", width = 10, height = 6)
 ggplot(fst_af_we, aes(x = pos)) + 
@@ -109,7 +111,7 @@ ggplot(fst_af_we, aes(x=pos)) +
     ggtitle("F_ST between regions")
     #ggplot2::ggsave(paste("plots/a_fst/fst_all.png"))
 dev.off()
-
+}
 
 #   II:
 # --------
@@ -153,24 +155,43 @@ gtf <- gtf[gtf$seqnames == 'chrX']   # to select only X chromosome
 
 
 # AF WE nyeste plan
-percentile = 0.998
-threshold = quantile(af_we_all_peak_candidates$fst_rolwin_hecto, percentile)
-new_overlap_af_we = fst_overlap(as.data.table(af_we_all_peak_candidates[af_we_all_peak_candidates$fst_rolwin_hecto >= threshold,]), gtf) # fst_af_we_100 burde kunne bruges lige så vel som reg_all_peak_cand.
-#View(new_overlap_af_we)
-unique(cbind(new_overlap_af_we$gene_name))
-
-peak_result = new_overlap_af_we %>%
-    group_by(gene_name) %>%
-    summarise(position = start[which.max(fst_rolwin_hecto)],
-              fst_peak_nui = max(fst_rolwin_hecto),
-              transcript_type = transcript_type[which.max(fst_rolwin_hecto)]) # inserted in text
-
-
+# percentile = 0.998
+# threshold = quantile(af_we_all_peak_candidates$fst_rolwin_hecto, percentile)
+# new_overlap_af_we = fst_overlap(as.data.table(af_we_all_peak_candidates[af_we_all_peak_candidates$fst_rolwin_hecto >= threshold,]), gtf) # fst_af_we_100 burde kunne bruges lige så vel som reg_all_peak_cand.
+# #View(new_overlap_af_we)
+# unique(cbind(new_overlap_af_we$gene_name))
+# 
+# peak_result = new_overlap_af_we %>%
+#     group_by(gene_name) %>%
+#     summarise(position = start[which.max(fst_rolwin_hecto)],
+#               fst_peak_nui = max(fst_rolwin_hecto),
+#               transcript_type = transcript_type[which.max(fst_rolwin_hecto)]) # inserted in text
 
 
+# parametriser:
+get_peaks = function(fst_for_overlap, fst_column, percentile) {
+    threshold = quantile(fst_column, percentile)
+    new_overlap_region = fst_overlap(as.data.table(fst_for_overlap[fst_column >= threshold,]), gtf) # fst_af_we_100 burde kunne bruges lige så vel som reg_all_peak_cand.
+    #View(new_overlap_region)
+    unique(cbind(new_overlap_region$gene_name))
+    
+    peak_result = new_overlap_region %>%
+        group_by(gene_name) %>%
+        summarise(position = start[which.max(fst_rolwin_hecto)],
+                  fst_peak = max(fst_rolwin_hecto),
+                  transcript_type = transcript_type[which.max(fst_rolwin_hecto)]) # inserted in text
+    
+    return(peak_result)
+    
+    
+    
+}
 
 
 
+get_peaks_af_we = get_peaks(af_we_all_peak_candidates, af_we_all_peak_candidates$fst_rolwin_hecto, 0.998)
+get_peaks_af_we = get_peaks_af_we[order(get_peaks_af_we$fst_peak, decreasing = T),]
+View(get_peaks_af_we)
 
 
 
