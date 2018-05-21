@@ -194,19 +194,19 @@ library(openxlsx)
 get_peaks_af_we = get_peaks(af_we_all_peak_candidates, af_we_all_peak_candidates$fst_rolwin_hecto, 0.998)
 get_peaks_af_we = get_peaks_af_we[order(get_peaks_af_we$fst_peak, decreasing = T),]
 #View(get_peaks_af_we)
-write.xlsx(get_peaks_af_we, "af_we_peaks_dataframe_nc.xlsx")
+write.xlsx(get_peaks_af_we, "fst_af_we_peaks_dataframe_nc.xlsx")
 
 
 get_peaks_we_ea = get_peaks(we_ea_all_peak_candidates, we_ea_all_peak_candidates$fst_rolwin_hecto, 0.9989)
 get_peaks_we_ea = get_peaks_we_ea[order(get_peaks_we_ea$fst_peak, decreasing = T),]
 #View(get_peaks_we_ea)
-write.xlsx(get_peaks_we_ea, "we_ea_peaks_dataframe_nc.xlsx")
+write.xlsx(get_peaks_we_ea, "fst_we_ea_peaks_dataframe_nc.xlsx")
 
 
 get_peaks_ea_af = get_peaks(ea_af_all_peak_candidates, ea_af_all_peak_candidates$fst_rolwin_hecto, 0.993)
 get_peaks_ea_af = get_peaks_ea_af[order(get_peaks_ea_af$fst_peak, decreasing = T),]
 #View(get_peaks_ea_af)
-write.xlsx(get_peaks_ea_af, "ea_af_peaks_dataframe_nc.xlsx")
+write.xlsx(get_peaks_ea_af, "fst_ea_af_peaks_dataframe_nc.xlsx")
 
 
 
