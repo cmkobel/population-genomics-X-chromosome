@@ -270,6 +270,7 @@ peak_result = new_overlap_af_we %>%
 
 
 
+
 # PLAN B1
 # old AF WE
 lima = 12000 # i stedet for at skrive tal, kan man så ikke definere percentiler?
