@@ -16,6 +16,7 @@ source("projX functions.r")
 # between East Asia and Africa. 
 
 
+# load in the scan_hh products
 for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
     print(
         load(paste("data/res_scan_", i, ".rdata", sep=""), verbose=T)
@@ -23,8 +24,9 @@ for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
 }
 
 
-
+# Define the function that calculates Fst and makes the rolling window
 fst_rolling_window = function(pos, freq_A_1, freq_A_2, size, mfunction) {
+    # Fst part
     fst_table = tibble(
         pos = pos,
         p_1 = freq_A_1,
@@ -37,7 +39,7 @@ fst_rolling_window = function(pos, freq_A_1, freq_A_2, size, mfunction) {
         mutate(F_ST = 1 - H_S / (H_T))# %>%
     #na.omit() # nej, NA's skal jo fjernes så sent som muligt. Ellers ændres vinduestørrelsen (fejlagtigt) omvendt prop. med 
     
-    # bør valideres, evt. med width 3, så man manuelt kan krydstjekke?
+    # Rolling window part
     return(cbind(
         fst_table,
         sliding_window=rollapply(fst_table$F_ST, size, mfunction, fill = NA)
@@ -45,15 +47,19 @@ fst_rolling_window = function(pos, freq_A_1, freq_A_2, size, mfunction) {
 }
 
 # FST: Jeg er ikke sikker på at dette er den rigtige måde at gøre det på. Da jeg ikke skalerer med antallet af individer
-
+# window 1000
 fst_af_we = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_scan_WE$freq_A, 1000, cmean)
 fst_we_ea = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 1000, cmean)
 fst_ea_af = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 1000, cmean)
 
+
+# window 100
 fst_af_we_100 = fst_rolling_window(res_scan_AF$POSITION, res_scan_AF$freq_A, res_scan_WE$freq_A, 100, cmean)
 fst_we_ea_100 = fst_rolling_window(res_scan_AF$POSITION, res_scan_WE$freq_A, res_scan_EA$freq_A, 100, cmean)
 fst_ea_af_100 = fst_rolling_window(res_scan_AF$POSITION, res_scan_EA$freq_A, res_scan_AF$freq_A, 100, cmean)
 
+
+# leg med densitet og percentiler
 quantile(fst_af_we_100$sliding_window, 0.95, na.rm = T)
 
 plot(density(na.omit(fst_af_we_100$sliding_window)))
@@ -62,33 +68,46 @@ abline(v=0.1172794)
 
 
 
+
 # add hline
-ggplot(fst_af_we, aes(x = pos)) +
-    geom_point(aes(y = sliding_window), size = 0.05, alpha = 0.5) +
+pdf("plots/a_fst/fst_AF_WE.pdf", width = 10, height = 6)
+ggplot(fst_af_we, aes(x = pos)) + 
+    geom_point(aes(y = sliding_window), size = 0.03) +
     xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
     #geom_hline(aes(yintercept=1, linetype=cutoff), data=cutoff, show.legend=F) +
     ggtitle("Fst: AF/WE")
-    ggplot2::ggsave(paste("plots/a_fst/fst_AF_WE.png"))
+    #ggplot2::ggsave(paste("plots/a_fst/fst_AF_WE.png"))
+dev.off()
 
+
+pdf("plots/a_fst/fst_WE_EA.pdf", width = 10, height = 6)
 ggplot(fst_we_ea, aes(x = pos)) +
-    geom_point(aes(y = sliding_window), size = 0.05, alpha = 0.5) +
+    geom_point(aes(y = sliding_window), size = 0.03) +
     xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
     ggtitle("Fst: WE/EA")
-    ggplot2::ggsave(paste("plots/a_fst/fst_WE_EA.png"))
+    #ggplot2::ggsave(paste("plots/a_fst/fst_WE_EA.png"))
+dev.off()
 
+
+pdf("plots/a_fst/fst_WE_AF.pdf", width = 10, height = 6)
 ggplot(fst_ea_af, aes(x = pos)) +
-    geom_point(aes(y = sliding_window), size=0.05, alpha = 0.5) +
+    geom_point(aes(y = sliding_window), size=0.03) +
     xlab("chromosome X position") + ylab("F_ST (1000 SNP sliding window)") +
     ggtitle("Fst: EA/AF")
-    ggplot2::ggsave(paste("plots/a_fst/fst_EA_AF.png"))
-
+    #ggplot2::ggsave(paste("plots/a_fst/fst_EA_AF.png"))
+dev.off()
+    
+    
 # merged
+pdf("plots/a_fst/fst_all.pdf", width = 10, height = 6)
 ggplot(fst_af_we, aes(x=pos)) +
-    geom_point(aes(y=fst_af_we$sliding_window, color="AF/WE"), size = 0.005) +
-    geom_point(aes(y=fst_we_ea$sliding_window, color="WE/EA"), size = 0.005) +
-    geom_point(aes(y=fst_ea_af$sliding_window, color="EA/AF"), size = 0.005) +
+    geom_point(aes(y=fst_af_we$sliding_window, color="AF/WE"), size = 0.02, alpha = 0.6) +
+    geom_point(aes(y=fst_we_ea$sliding_window, color="WE/EA"), size = 0.02, alpha = 0.6) +
+    geom_point(aes(y=fst_ea_af$sliding_window, color="EA/AF"), size = 0.02, alpha = 0.6) +
     xlab("chromosome X position") + ylab("filtered F_ST (1000 SNP sliding window)") +
     ggtitle("F_ST between regions")
+    #ggplot2::ggsave(paste("plots/a_fst/fst_all.png"))
+dev.off()
 
 
 #   II:
@@ -204,10 +223,40 @@ overlap_af_we
 View(overlap_af_we)
 
 
-# PLAN B
+# PLAN B2 (percentiler), B1 findes som et historisk commit på github or below
 
 # AF WE
-lima = 12000
+percentile = 0.998
+threshold = quantile(na.omit(fst_af_we_100$sliding_window), percentile) 
+new_overlap_af_we = fst_overlap(as.data.table(af_we_all_peak_candidates[af_we_all_peak_candidates$fst_rolwin_hecto >= threshold,]), gtf) # fst_af_we_100 burde kunne bruges lige så vel som reg_all_peak_cand.
+#View(new_overlap_af_we)
+unique(cbind(new_overlap_af_we$gene_name, new_overlap_af_we$start))
+
+peak_result = new_overlap_af_we %>%
+    group_by(gene_name) %>% 
+    summarise(position = start[which.max(fst_rolwin_hecto)],
+              fst_peak = max(fst_rolwin_hecto),
+              transcript_type = transcript_type[which.max(fst_rolwin_hecto)]) # inserted in text
+
+# AF WE uden sort
+percentile = 0.998
+threshold = quantile(na.omit(fst_af_we_100$sliding_window), percentile) 
+new_overlap_af_we = fst_overlap(as.data.table(fst_af_we_100[fst_af_we_100$fst_rolwin_hecto >= threshold,]), gtf) # fst_af_we_100 burde kunne bruges lige så vel som reg_all_peak_cand.
+#View(new_overlap_af_we)
+unique(cbind(new_overlap_af_we$gene_name, new_overlap_af_we$start))
+
+peak_result = new_overlap_af_we %>%
+    group_by(gene_name) %>% 
+    summarise(position = start[which.max(fst_rolwin_hecto)],
+              new_fst_peak = max(fst_rolwin_hecto),
+              transcript_type = transcript_type[which.max(fst_rolwin_hecto)]) # inserted in text
+
+
+
+
+# PLAN B1
+# old AF WE
+lima = 12000 # i stedet for at skrive tal, kan man så ikke definere percentiler?
 new_overlap_af_we = fst_overlap(as.data.table(af_we_all_peak_candidates[1:lima,]), gtf[1:lima,])
 simple = new_overlap_af_we[,c(1, 2, 3, 15, 17, 18, 23)]
 View(simple)
