@@ -27,13 +27,9 @@ library(rehh)
 
 
 
-haplohh_WE = cd2h("data/genotypes_WE.hap", "data/snps_filtered.inp") # WestEurasia    44 haplotypes and 411892 SNPs
 haplohh_AF = cd2h("data/genotypes_AF.hap", "data/snps_filtered.inp") # Africa         21 haplotypes and 411892 SNPs
+haplohh_WE = cd2h("data/genotypes_WE.hap", "data/snps_filtered.inp") # WestEurasia    44 haplotypes and 411892 SNPs
 haplohh_EA = cd2h("data/genotypes_EA.hap", "data/snps_filtered.inp") # EastAsia       24 haplotypes and 411892 SNPs
-haplohh_SA = cd2h("data/genotypes_SA.hap", "data/snps_filtered.inp") # SouthAsia      30 haplotypes and 411892 SNPs
-haplohh_AM = cd2h("data/genotypes_AM.hap", "data/snps_filtered.inp") # America         6 haplotypes and 411892 SNPs
-haplohh_CAS = cd2h("data/genotypes_CAS.hap", "data/snps_filtered.inp") # CntrlAsiaSiber8 haplotypes and 411892 SNPs
-haplohh_O = cd2h("data/genotypes_O.hap", "data/snps_filtered.inp") # Oceania          12 haplotypes and 411892 SNPs
 
 # Look at random positions
 # andet argument er snp nummeret.
@@ -42,59 +38,42 @@ site_specific_ehh = calc_ehhs(haplohh_WE, 2)
 
 # Compute ihh for all the snps in the halohh object considered.
 # Computationally heavy
-# res_scan_WE = scan_hh(haplohh_WE, threads = 4) # save this object to disk.
 # res_scan_AF = scan_hh(haplohh_AF, threads = 4) # save this object to disk.
+# res_scan_WE = scan_hh(haplohh_WE, threads = 4) # save this object to disk.
 # res_scan_EA = scan_hh(haplohh_EA, threads = 4) # save this object to disk.
-# res_scan_SA = scan_hh(haplohh_SA, threads = 4) # save this object to disk.
-# res_scan_AM = scan_hh(haplohh_AM, threads = 4) # save this object to disk.
-# res_scan_CAS = scan_hh(haplohh_CAS, threads = 4) # save this object to disk.
-# res_scan_O = scan_hh(haplohh_O, threads = 4) # save this object to disk.
-# save(res_scan_WE, file="res_scan_WE.rdata")
-# save(res_scan_AF, file="res_scan_AF.rdata")
-# save(res_scan_EA, file="res_scan_EA.rdata")
-# save(res_scan_SA, file="res_scan_SA.rdata")
-# save(res_scan_AM, file="res_scan_AM.rdata")
-# save(res_scan_CAS, file="res_scan_CAS.rdata")
-# save(res_scan_O, file="res_scan_O.rdata")
 
+# save(res_scan_AF, file="res_scan_AF.rdata")
+# save(res_scan_WE, file="res_scan_WE.rdata")
+# save(res_scan_EA, file="res_scan_EA.rdata")
 
 # ^ The above code products are loaded here (1000x faster than recomputing)
-for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
+#for(i in (c("WE", "AF", "EA", "SA", "AM", "CAS", "O"))) {
+for(i in (c("AF","WE", "EA"))) {
+        
     print(
         load(paste("data/res_scan_", i, ".rdata", sep=""), verbose=T)
     )
 }
 
 # Q2 Allele freq in pops.
-pdf(file="../plots/b_ehh/freq_A_density_WE.pdf"); hist(res_scan_WE$freq_A); dev.off()
 pdf(file="../plots/b_ehh/freq_A_density_AF.pdf"); hist(res_scan_AF$freq_A); dev.off()
+pdf(file="../plots/b_ehh/freq_A_density_WE.pdf"); hist(res_scan_WE$freq_A); dev.off()
 pdf(file="../plots/b_ehh/freq_A_density_EA.pdf"); hist(res_scan_EA$freq_A); dev.off()
-pdf(file="../plots/b_ehh/freq_A_density_SA.pdf"); hist(res_scan_SA$freq_A); dev.off()
-pdf(file="../plots/b_ehh/freq_A_density_AM.pdf"); hist(res_scan_AM$freq_A); dev.off()
-pdf(file="../plots/b_ehh/freq_A_density_CAS.pdf"); hist(res_scan_CAS$freq_A); dev.off()
-pdf(file="../plots/b_ehh/freq_A_density_O.pdf"); hist(res_scan_O$freq_A); dev.off()
 
 #Q3: How is the standardized iHH calculated? For what reason do they standardize iHS measure?
 
 # Compute ihs (integrated haplotype score from integrated haplotype homozygosity)
-wg_ihs_WE = ihh2ihs(res_scan_WE, freqbin = 0.16)
 wg_ihs_AF = ihh2ihs(res_scan_AF, freqbin = 0.16)
+wg_ihs_WE = ihh2ihs(res_scan_WE, freqbin = 0.16)
 wg_ihs_EA = ihh2ihs(res_scan_EA, freqbin = 0.16)
-wg_ihs_SA = ihh2ihs(res_scan_SA, freqbin = 0.16)
-wg_ihs_AM = ihh2ihs(res_scan_AM, freqbin = 0.16)
-wg_ihs_CAS = ihh2ihs(res_scan_CAS, freqbin = 0.16)
-wg_ihs_O = ihh2ihs(res_scan_O, freqbin = 0.16)
 # Jeg ved ikke helt hvad freqbin gør, men nu har jeg øget den indtil den ikke brokker sig længere??
+# Jeg går ud fra at freqbin bruges til oversættelsen til signifikans.
 
 
 # Plotting the results.
-# ihsplot(wg_ihs_WE, plot.pval = T, main="WE", cex = 0.005, pch = 19)
 # ihsplot(wg_ihs_AF, plot.pval = T, main="AF")
+# ihsplot(wg_ihs_WE, plot.pval = T, main="WE", cex = 0.005, pch = 19)
 # ihsplot(wg_ihs_EA, plot.pval = T, main="EA")
-# ihsplot(wg_ihs_SA, plot.pval = T, main="SA")
-# ihsplot(wg_ihs_AM, plot.pval = T, main="AM")
-# ihsplot(wg_ihs_CAS, plot.pval = T, main="CAS")
-# ihsplot(wg_ihs_O, plot.pval = T, main="O")
 
 #Q4. Do you find outliers with significant iHS?
 #Find the foverlap code
@@ -133,12 +112,9 @@ pdf("../plots/b_ehh/ihs_O.pdf"); plot_ihs(wg_ihs_O$iHS,"O"); dev.off()
 # ------
 # Identify the 10 most significant regions and associated with genes as in A.
 
-# Denne funktion skal være generel og kan egentlig indsættes i
+# Denne funktion skal være generel og kan egentlig indsættes i projX functions.r
 
 overlap = function(candidates, gene_annotation) {
-    # Example of formatting of input, start and end is needed for both
-    # fsts = data.table(start = c(12, 55, 19), end = c(12, 55, 19), fst = c(0.1, 0.2, 0.3))
-    # gene_annotation = data.table(start = c(10,30,50,70), end = c(20,40,60,80), x_gen = c("gen1", "gen2", "gen3", "gen4"))
     setkey(candidates, start, end)
     return(
         foverlaps(gene_annotation, candidates, type="any", nomatch = 0)
@@ -168,6 +144,44 @@ sorted_filtered_tibble = tibble(start = sorted_filtered$POSITION,
 overlap_out = overlap(na.omit(as.data.table(sorted_filtered_tibble)), gtf)
 unique(overlap_out$gene_name)
 # så er der ti !
+
+to_overlap = tibble(start = wg_ihs_AF$iHS$POSITION,
+                    end = start,
+                    iHS = wg_ihs_AF$iHS$iHS,
+                    ppval = wg_ihs_AF$iHS$`-log10(p-value)`) %>% 
+             na.omit()
+
+
+get_peaks = function(to_overlap, value_column, percentile) {
+    # 1 c(start, end, value)
+    # 2 c(value)
+    # 3 percentile
+    threshold = quantile(value_column, percentile)
+    new_overlap_region = overlap(as.data.table(to_overlap[value_column >= threshold,]), gtf) # fst_af_we_100 burde kunne bruges lige så vel som reg_all_peak_cand.
+    #return(new_overlap_region)
+    #View(new_overlap_region)
+    #return(unique(cbind(new_overlap_region$gene_name)))
+    
+    peak_result = new_overlap_region %>%
+        group_by(gene_name) %>%
+        summarise(position = start[which.max(iHS)],
+                  iHS = iHS[which.max(iHS)],
+                  ppval = ppval[which.max(iHS)],
+                  gene_type = gene_type[which.max(iHS)],
+                  comment = "")
+                  
+                  
+
+    #               fst_peak = max(fst_rolwin_hecto),
+    #               comment = "no comment") # inserted in text
+    # 
+    return(peak_result)
+    
+}
+
+get_peaks_af = get_peaks(to_overlap, to_overlap$ppval, 0.99976)
+get_peaks_af = get_peaks_af[order(get_peaks_af$ppval, decreasing = T),]
+#View(get_peaks_af_we)
 
 
 # Hvis jeg får noget mere forståelse og kan gå lidt i dybden i noget af outputtet, kunne denne sektion godt være færdig.
