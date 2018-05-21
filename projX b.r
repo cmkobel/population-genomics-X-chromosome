@@ -143,13 +143,28 @@ sorted_filtered_tibble = tibble(start = sorted_filtered$POSITION,
                                 `-log10(p-value)` = sorted_filtered$`-log10(p-value)`)
 overlap_out = overlap(na.omit(as.data.table(sorted_filtered_tibble)), gtf)
 unique(overlap_out$gene_name)
-# så er der ti !
+# så er der ti ! 
+# ^bør det ikke slettes? et andet liv..
 
-to_overlap = tibble(start = wg_ihs_AF$iHS$POSITION,
-                    end = start,
-                    iHS = wg_ihs_AF$iHS$iHS,
-                    ppval = wg_ihs_AF$iHS$`-log10(p-value)`) %>% 
-             na.omit()
+af_to_overlap = tibble(start = wg_ihs_AF$iHS$POSITION,
+                       end = start,
+                       iHS = wg_ihs_AF$iHS$iHS,
+                       ppval = wg_ihs_AF$iHS$`-log10(p-value)`) %>% 
+    na.omit()
+
+we_to_overlap = tibble(start = wg_ihs_WE$iHS$POSITION,
+                       end = start,
+                       iHS = wg_ihs_WE$iHS$iHS,
+                       ppval = wg_ihs_WE$iHS$`-log10(p-value)`) %>% 
+    na.omit()
+
+ea_to_overlap = tibble(start = wg_ihs_EA$iHS$POSITION,
+                       end = start,
+                       iHS = wg_ihs_EA$iHS$iHS,
+                       ppval = wg_ihs_EA$iHS$`-log10(p-value)`) %>% 
+    na.omit()
+
+
 
 
 get_peaks = function(to_overlap, value_column, percentile) {
@@ -167,7 +182,7 @@ get_peaks = function(to_overlap, value_column, percentile) {
         summarise(position = start[which.max(iHS)],
                   iHS = iHS[which.max(iHS)],
                   ppval = ppval[which.max(iHS)],
-                  gene_type = gene_type[which.max(iHS)],
+                  transcript_type = gene_type[which.max(iHS)],
                   comment = "")
                   
                   
@@ -179,9 +194,23 @@ get_peaks = function(to_overlap, value_column, percentile) {
     
 }
 
-get_peaks_af = get_peaks(to_overlap, to_overlap$ppval, 0.99976)
+library(openxlsx)
+
+get_peaks_af = get_peaks(af_to_overlap, af_to_overlap$ppval, 0.99976)
 get_peaks_af = get_peaks_af[order(get_peaks_af$ppval, decreasing = T),]
-#View(get_peaks_af_we)
+write.xlsx(get_peaks_af, "ihs_af_peaks_dataframe_nc.xlsx")
+#View(get_peaks_af)
+
+get_peaks_we = get_peaks(we_to_overlap, we_to_overlap$ppval, 0.9989)
+get_peaks_we = get_peaks_we[order(get_peaks_we$ppval, decreasing = T),]
+write.xlsx(get_peaks_we, "ihs_we_peaks_dataframe_nc.xlsx")
+#View(get_peaks_we)
+
+get_peaks_ea = get_peaks(ea_to_overlap, ea_to_overlap$ppval, 0.9993)
+get_peaks_ea = get_peaks_ea[order(get_peaks_ea$ppval, decreasing = T),]
+write.xlsx(get_peaks_ea, "ihs_ea_peaks_dataframe_nc.xlsx")
+#View(get_peaks_ea)
+
 
 
 # Hvis jeg får noget mere forståelse og kan gå lidt i dybden i noget af outputtet, kunne denne sektion godt være færdig.
