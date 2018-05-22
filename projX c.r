@@ -77,19 +77,19 @@ gtf <- gtf[gtf$seqnames == 'chrX']   # to select only X chromosome
 
 af_we_to_overlap = tibble(start = wg_xpehh_AF_WE$POSITION,
                           end = start,
-                          xpehh = wg_xpehh_AF_WE[,4],
+                          xpehh = wg_xpehh_AF_WE[,3],
                           ppval = wg_xpehh_AF_WE$`-log10(p-value) [bilateral]`) %>% 
     na.omit()
 
 we_ea_to_overlap = tibble(start = wg_xpehh_WE_EA$POSITION,
                           end = start,
-                          xpehh = wg_xpehh_WE_EA[,4],
+                          xpehh = wg_xpehh_WE_EA[,3],
                           ppval = wg_xpehh_WE_EA$`-log10(p-value) [bilateral]`) %>% 
     na.omit()
 
 ea_af_to_overlap = tibble(start = wg_xpehh_EA_AF$POSITION,
                           end = start,
-                          xpehh = wg_xpehh_EA_AF[,4],
+                          xpehh = wg_xpehh_EA_AF[,3],
                           ppval = wg_xpehh_EA_AF$`-log10(p-value) [bilateral]`) %>% 
     na.omit()
 
@@ -124,17 +124,17 @@ get_peaks = function(to_overlap, value_column, percentile) { # value column skal
 
 get_peaks_af_we = get_peaks(af_we_to_overlap, 4, 0.99927)
 get_peaks_af_we = get_peaks_af_we[order(get_peaks_af_we$ppval, decreasing = T),]
-write.xlsx(get_peaks_af_we, "xpehh_af_we_peaks_dataframe.xlsx")
+write.xlsx(get_peaks_af_we, "frames_out/xpehh_af_we_peaks_dataframe.xlsx")
 #View(get_peaks_af)
 
 get_peaks_we_ea = get_peaks(we_ea_to_overlap, 4, 0.9994)
 get_peaks_we_ea = get_peaks_we_ea[order(get_peaks_we_ea$ppval, decreasing = T),]
-write.xlsx(get_peaks_we_ea, "xpehh_we_ea_peaks_dataframe.xlsx")
+write.xlsx(get_peaks_we_ea, "frames_out/xpehh_we_ea_peaks_dataframe.xlsx")
 #View(get_peaks_af)
 
 get_peaks_ea_af = get_peaks(ea_af_to_overlap, 4, 0.99829)
 get_peaks_ea_af = get_peaks_ea_af[order(get_peaks_ea_af$ppval, decreasing = T),]
-write.xlsx(get_peaks_ea_af, "xpehh_ea_af_peaks_dataframe.xlsx")
+write.xlsx(get_peaks_ea_af, "frames_out/xpehh_ea_af_peaks_dataframe.xlsx")
 #View(get_peaks_af)
 
 
